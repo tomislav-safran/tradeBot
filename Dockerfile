@@ -10,7 +10,7 @@ COPY gradle ./gradle
 COPY src ./src
 
 # Build the fat JAR (adjust the task name if needed)
-RUN gradle buildFatJar --no-daemon
+RUN gradle buildFatJar --no-daemon --debug
 
 # Stage 2: Create the Runtime Image
 FROM amazoncorretto:22 AS runtime
