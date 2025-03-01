@@ -7,20 +7,20 @@ COPY gradle /home/gradle/app/gradle
 WORKDIR /home/gradle/app
 RUN gradle clean build -i --stacktrace
 
-# Stage 2: Build Application
+# Stage 2: Build Application using ShadowJar
 FROM gradle:latest AS build
 COPY --from=cache /home/gradle/cache_home /home/gradle/.gradle
 COPY src/main/kotlin /usr/src/app/
 WORKDIR /usr/src/app
 COPY --chown=gradle:gradle src/main/kotlin /home/gradle/src
 WORKDIR /home/gradle/src
-# Build the fat JAR, Gradle also supports shadow
-# and boot JAR by default.
-RUN gradle buildFatJar --no-daemon
+# Build the shadow JAR (ensure the Shadow plugin is applied in your build.gradle.kts)
+RUN gradle shadowJar --no-daemon
 
 # Stage 3: Create the Runtime Image
 FROM amazoncorretto:22 AS runtime
 EXPOSE 8080
 RUN mkdir /app
-COPY --from=build /home/gradle/src/build/libs/*.jar /app/ktor-docker-sample.jar
-ENTRYPOINT ["java","-jar","/app/ktor-docker-sample.jar"]
+# Adjust the jar name as needed. The default output is typically "your-app-name-all.jar"
+COPY --from=build /home/gradle/src/build/libs/*-all.jar /app/ktor-docker-sample.jar
+ENTRYPOINT ["java", "-jar", "/app/ktor-docker-sample.jar"]
