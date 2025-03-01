@@ -1,5 +1,5 @@
 services:
   trade-bot:
-    image: tradebot-web
+    build: .
     ports:
       - "8080:8080"
