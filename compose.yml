@@ -1,6 +1,6 @@
 version: '3'
 services:
   myapp:
-    build: .
+    build: src/main/kotlin
     ports:
       - "8080:8080"
