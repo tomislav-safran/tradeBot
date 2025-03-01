@@ -1,11 +1,14 @@
 # Stage 1: Build Application (without caching)
 FROM gradle:latest AS build
 WORKDIR /home/gradle/app
-# Copy build configuration files and the Gradle wrapper setup
-COPY build.gradle.* gradle.properties ./
+
+# Copy Gradle settings and scripts
+COPY build.gradle.kts settings.gradle.kts gradle.properties ./
 COPY gradle ./gradle
+
 # Copy the application source code
-COPY src/main/kotlin ./src/main/kotlin
+COPY src ./src
+
 # Build the fat JAR (adjust the task name if needed)
 RUN gradle buildFatJar --no-daemon
 
