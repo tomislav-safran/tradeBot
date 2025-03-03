@@ -1,5 +1,8 @@
 services:
   trade-bot:
     build: .
+    environment:
+      API_KEY: ""
+      API_SECRET: ""
     ports:
       - "80:8080"
