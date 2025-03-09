@@ -10,13 +10,8 @@ import io.ktor.server.routing.*
 
 fun Application.configureRouting() {
     routing {
-        get("/balance") {
-            val balance = TradingViewService.getWalletBalance()
-            call.respond(HttpStatusCode.OK, balance)
-        }
-        get("/orders-count") {
-            val count = TradingViewService.getActiveOrdersCount()
-            call.respond(HttpStatusCode.OK, count)
+        get("/health") {
+            call.respond(HttpStatusCode.OK, "OK")
         }
         post("/order") {
             val body = call.receive<TradingViewAlert>()
