@@ -13,6 +13,15 @@ fun Application.configureRouting() {
         get("/health") {
             call.respond(HttpStatusCode.OK, "OK")
         }
+        get("/historic-candles/{symbol}") {
+            val symbol = call.parameters["symbol"]!!
+            val interval = call.request.queryParameters["interval"]!!
+            val limit = call.request.queryParameters["limit"]!!
+
+            val response = TradingViewService.getHistoricCandles(symbol, interval, limit)
+            call.respond(response)
+
+        }
         post("/order") {
             val body = call.receive<TradingViewAlert>()
             TradingViewService.placeOrder(body)

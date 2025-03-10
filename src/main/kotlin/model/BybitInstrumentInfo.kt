@@ -3,12 +3,6 @@ package com.tsafran.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class BybitInstrumentInfo(
-    val result: InstrumentInfoResult,
-    val retMsg: String?
-)
-
-@Serializable
 data class InstrumentInfoResult(val list: List<InstrumentInfo>)
 
 @Serializable

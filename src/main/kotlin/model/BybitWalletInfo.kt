@@ -3,13 +3,7 @@ package com.tsafran.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class BybitWalletInfo(
-    val result: WalletResult?,
-    val retMsg: String?
-)
-
-@Serializable
-data class WalletResult(val list: List<WalletInfo>?)
+data class WalletResult(val list: List<WalletInfo>)
 
 @Serializable
 data class WalletInfo(

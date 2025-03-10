@@ -1,9 +1,6 @@
 package com.tsafran.service
 
-import com.tsafran.model.BybitInstrumentInfo
-import com.tsafran.model.BybitOrderInfo
-import com.tsafran.model.BybitWalletInfo
-import com.tsafran.model.TradingViewAlert
+import com.tsafran.model.*
 import io.ktor.client.*
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -23,7 +20,7 @@ val baseUrl = "https://api.bybit.com"
 
 val client = HttpClient {
     install(ContentNegotiation) {
-        json(Json { ignoreUnknownKeys=true })
+        json(Json { ignoreUnknownKeys = true })
     }
 }
 
@@ -49,14 +46,14 @@ object TradingViewService {
         )
     }
 
-    suspend fun getWalletBalance(): Double {
+    private suspend fun getWalletBalance(): Double {
         val queryParams = "accountType=UNIFIED"
-        val response: BybitWalletInfo = client.get("$baseUrl/v5/account/wallet-balance?$queryParams") {
+        val response: BybitApiResponse<WalletResult> = client.get("$baseUrl/v5/account/wallet-balance?$queryParams") {
             authHeaders(queryParams).forEach { (key, value) -> header(key, value) }
         }.body()
 
         println(response.retMsg)
-        return response.result?.list?.firstOrNull()?.totalMarginBalance?.toDoubleOrNull() ?: 0.0
+        return response.result.list.firstOrNull()?.totalMarginBalance?.toDoubleOrNull() ?: 0.0
     }
 
     // Place Order (Using TradingView Alert Data)
@@ -79,20 +76,35 @@ object TradingViewService {
         println("Order Response: ${response.bodyAsText()}")
     }
 
-    suspend fun getActiveOrdersCount(): Int {
+    private suspend fun getActiveOrdersCount(): Int {
         val queryParams = "category=spot"
-        val response: BybitOrderInfo = client.get("$baseUrl/v5/order/realtime?$queryParams") {
+        val response: BybitApiResponse<OrderResult> = client.get("$baseUrl/v5/order/realtime?$queryParams") {
             authHeaders(queryParams).forEach { (key, value) -> header(key, value) }
         }.body()
 
         println(response.retMsg)
-        return response.result?.list?.size ?: 0
+        return response.result.list.size
     }
 
-    suspend fun getInstrumentInfo(symbol: String): BybitInstrumentInfo {
+    private suspend fun getInstrumentInfo(symbol: String): BybitApiResponse<InstrumentInfoResult> {
         val queryParams = "category=spot&symbol=$symbol"
         return client.get("$baseUrl/v5/market/instruments-info?$queryParams") {
             authHeaders(queryParams).forEach { (key, value) -> header(key, value) }
+        }.body()
+    }
+
+    suspend fun getHistoricCandles(
+        symbol: String,
+        interval: String,
+        limit: String
+    ): BybitApiResponse<HistoricCandlesResult> {
+        return client.get("$baseUrl/v5/market/kline") {
+            url {
+                parameters.append("category", "spot")
+                parameters.append("symbol", symbol)
+                parameters.append("interval", interval)
+                parameters.append("limit", limit)
+            }
         }.body()
     }
 }
