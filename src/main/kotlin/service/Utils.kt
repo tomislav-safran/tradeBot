@@ -2,14 +2,15 @@ package com.tsafran.service
 
 import com.tsafran.model.BybitOrder
 import com.tsafran.model.InstrumentInfo
+import com.tsafran.model.LinearInstrumentInfo
 import com.tsafran.model.MaxDecimalsDTO
-import com.tsafran.model.TradingViewAlert
+import com.tsafran.model.OrderAlert
 import java.math.BigDecimal
 import java.math.RoundingMode
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
-fun calculatePositionSize(alert: TradingViewAlert, walletBalance: Double, lotDecimals: Int): Double {
+fun calculatePositionSize(alert: OrderAlert, walletBalance: Double, lotDecimals: Int): Double {
     val riskAmountUSD = walletBalance * 0.01 // Risk 1% of balance in USD
 
     val risk = if (alert.isLong) {
@@ -18,18 +19,15 @@ fun calculatePositionSize(alert: TradingViewAlert, walletBalance: Double, lotDec
         alert.stop - alert.close
     }
 
-    // Adjust for trading fees (0.1% entry + 0.1% exit)
-    val totalFees = 0.002 * alert.close
-
     // Calculate Position Size (in coin)
-    val positionSize = riskAmountUSD / (risk + totalFees)
+    val positionSize = riskAmountUSD / risk
 
     if (positionSize * alert.close > walletBalance * 9) {
-        throw RuntimeException("Leverage is bigger than 10X")
+        error("Leverage is bigger than 10X")
     }
 
     if (positionSize.equals(0.0)) {
-        throw RuntimeException("Position cannot be 0")
+        error("Position cannot be 0")
     }
 
     return BigDecimal(positionSize).setScale(lotDecimals, RoundingMode.HALF_UP).toDouble()
@@ -41,7 +39,7 @@ fun hmacSHA256(data: String, key: String): String {
     return hmac.doFinal(data.toByteArray()).joinToString("") { "%02x".format(it) }
 }
 
-fun convertAlertToOrder(alert: TradingViewAlert, walletBalance: Double, maxDecimals: MaxDecimalsDTO): BybitOrder {
+fun convertAlertToLimitTpSlOrder(alert: OrderAlert, walletBalance: Double, maxDecimals: MaxDecimalsDTO): BybitOrder {
     val positionSize = calculatePositionSize(alert, walletBalance, maxDecimals.lotDecimals)
     val side = if (alert.isLong) "Buy" else "Sell"
 
@@ -59,6 +57,25 @@ fun convertAlertToOrder(alert: TradingViewAlert, walletBalance: Double, maxDecim
     )
 }
 
+fun convertAlertToFutureMarketTpSlOrder(alert: OrderAlert, walletBalance: Double, maxDecimals: MaxDecimalsDTO): BybitOrder {
+    val positionSize = calculatePositionSize(alert, walletBalance, maxDecimals.lotDecimals)
+    val side = if (alert.isLong) "Buy" else "Sell"
+
+    val tp = BigDecimal(alert.limit).setScale(maxDecimals.priceDecimals, RoundingMode.HALF_UP).toString()
+    val sl = BigDecimal(alert.stop).setScale(maxDecimals.priceDecimals, RoundingMode.HALF_UP).toString()
+
+    return BybitOrder(
+        category = "linear",
+        orderType = "Market",
+        tpslMode = "Full",
+        symbol = alert.coin,
+        side = side,
+        qty = positionSize.toString(),
+        takeProfit = tp,
+        stopLoss = sl,
+    )
+}
+
 fun getMaxDecimalsForSymbol(instrument: InstrumentInfo?): MaxDecimalsDTO {
     instrument?.let {
         val basePrecision = instrument.lotSizeFilter.basePrecision
@@ -69,5 +86,18 @@ fun getMaxDecimalsForSymbol(instrument: InstrumentInfo?): MaxDecimalsDTO {
             priceDecimals = BigDecimal(tickSize).stripTrailingZeros().scale()
         )
     }
-    throw RuntimeException("Instrument not found")
+    error("Instrument not found")
+}
+
+fun getMaxDecimalsForLinearSymbol(instrument: LinearInstrumentInfo?): MaxDecimalsDTO {
+    instrument?.let {
+        val basePrecision = instrument.lotSizeFilter.qtyStep
+        val tickSize = instrument.priceFilter.tickSize
+
+        return MaxDecimalsDTO(
+            lotDecimals = BigDecimal(basePrecision).stripTrailingZeros().scale(),
+            priceDecimals = BigDecimal(tickSize).stripTrailingZeros().scale()
+        )
+    }
+    error("Instrument not found")
 }

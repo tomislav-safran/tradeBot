@@ -1,7 +1,10 @@
 package com.tsafran
 
-import com.tsafran.model.TradingViewAlert
-import com.tsafran.service.TradingViewService
+import com.tsafran.model.OrderAlert
+import com.tsafran.service.OpenAIService
+import com.tsafran.service.OpenAIService.placeAIOrder
+import com.tsafran.service.Scheduler
+import com.tsafran.service.BybitService
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.receive
@@ -9,23 +12,41 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Application.configureRouting() {
+    val gptOrderScheduler = Scheduler(::placeAIOrder)
+
     routing {
         get("/health") {
             call.respond(HttpStatusCode.OK, "OK")
         }
-        get("/historic-candles/{symbol}") {
-            val symbol = call.parameters["symbol"]!!
-            val interval = call.request.queryParameters["interval"]!!
-            val limit = call.request.queryParameters["limit"]!!
-
-            val response = TradingViewService.getHistoricCandles(symbol, interval, limit)
-            call.respond(response)
-
-        }
-        post("/order") {
-            val body = call.receive<TradingViewAlert>()
-            TradingViewService.placeOrder(body)
+        post("spot/order") {
+            val body = call.receive<OrderAlert>()
+            BybitService.placeLimitTpSlOrder(body)
             call.respond(HttpStatusCode.OK)
+        }
+        post("/linear/order") {
+            val body = call.receive<OrderAlert>()
+            BybitService.placeFutureMarketTpSlOrder(body)
+            call.respond(HttpStatusCode.OK)
+        }
+        post("linear/order/ai") {
+            val body = call.receive<OrderAlert>()
+
+            BybitService.checkForActiveOrders("linear", listOf("BTCUSDT", "ETHUSDT", "SOLUSDT"))
+
+            if (OpenAIService.verifyTradeWithAI(body, "15", "90", "linear")) {
+                BybitService.placeFutureMarketTpSlOrder(body)
+                call.respond(HttpStatusCode.OK)
+            }
+            call.respond(HttpStatusCode.OK, "AI deemed trade to be invalid")
+        }
+        post("/start-gpt-trader") {
+            gptOrderScheduler.start()
+            call.respondText("Scheduler started")
+        }
+
+        post("/stop-gpt-trader") {
+            gptOrderScheduler.stop()
+            call.respondText("Scheduler stopped")
         }
     }
 }

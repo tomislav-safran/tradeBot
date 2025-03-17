@@ -3,7 +3,7 @@ package com.tsafran.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class TradingViewAlert(
+data class OrderAlert(
     val coin: String,
     val close: Double,
     val limit: Double,
