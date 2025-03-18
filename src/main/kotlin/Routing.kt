@@ -18,7 +18,7 @@ fun Application.configureRouting() {
         get("/health") {
             call.respond(HttpStatusCode.OK, "OK")
         }
-        post("spot/order") {
+        post("/spot/order") {
             val body = call.receive<OrderAlert>()
             BybitService.placeLimitTpSlOrder(body)
             call.respond(HttpStatusCode.OK)
@@ -28,13 +28,13 @@ fun Application.configureRouting() {
             BybitService.placeFutureMarketTpSlOrder(body)
             call.respond(HttpStatusCode.OK)
         }
-        post("linear/order/ai") {
+        post("/linear/order/ai") {
             val body = call.receive<OrderAlert>()
 
             BybitService.checkForActiveOrders("linear", listOf("BTCUSDT", "ETHUSDT", "SOLUSDT"))
 
             if (OpenAIService.verifyTradeWithAI(body, "15", "90", "linear")) {
-                BybitService.placeFutureMarketTpSlOrder(body)
+                BybitService.placeFutureMarketTpSlOrder(body, true)
                 call.respond(HttpStatusCode.OK)
             }
             call.respond(HttpStatusCode.OK, "AI deemed trade to be invalid")

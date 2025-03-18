@@ -21,6 +21,16 @@ data class BybitOrder(
 )
 
 @Serializable
+data class BybitTradingStopOrder(
+    val category: String = "linear",
+    val symbol: String,
+    val trailingStop: String,
+    val activePrice: String,
+    val tpslMode: String = "Full",
+    val positionIdx: Int = 0,
+)
+
+@Serializable
 data class BybitBatchOrder (
     val category: String = "spot",
     val request: List<BybitOrder>
