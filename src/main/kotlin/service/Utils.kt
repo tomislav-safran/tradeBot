@@ -22,10 +22,6 @@ fun calculatePositionSize(alert: OrderAlert, walletBalance: Double, lotDecimals:
     // Calculate Position Size (in coin)
     val positionSize = riskAmountUSD / risk
 
-    if (positionSize * alert.close > walletBalance * 9) {
-        error("Leverage is bigger than 10X")
-    }
-
     if (positionSize.equals(0.0)) {
         error("Position cannot be 0")
     }

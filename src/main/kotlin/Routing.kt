@@ -5,6 +5,7 @@ import com.tsafran.service.OpenAIService
 import com.tsafran.service.OpenAIService.placeAIOrder
 import com.tsafran.service.Scheduler
 import com.tsafran.service.BybitService
+import com.tsafran.service.BybitService.getActiveOrdersCount
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.receive
@@ -30,9 +31,6 @@ fun Application.configureRouting() {
         }
         post("/linear/order/ai") {
             val body = call.receive<OrderAlert>()
-
-            BybitService.checkForActiveOrders("linear", listOf("BTCUSDT", "ETHUSDT", "SOLUSDT"))
-
             if (OpenAIService.verifyTradeWithAI(body, "15", "90", "linear")) {
                 BybitService.placeFutureMarketTpSlOrder(body, true)
                 call.respond(HttpStatusCode.OK)
