@@ -112,16 +112,16 @@ object OpenAIService {
 
         val userMessage = """
             Trade signal: {
-                closePrice: ${alert.close}
-                stopPrice: ${alert.stop}
-                limitPrice: ${alert.limit}
-                direction: ${if (alert.isLong) "Long" else "Short"}
+                close price: ${alert.close}
+                stop price: ${alert.stop}
+                limit price: ${alert.limit}
+                trade direction: ${if (alert.isLong) "Long" else "Short"}
             }
             Last $candleLookBackPeriod candles: (format: [timestamp, open, high, low, close, volume, turnover])
             ${Json.encodeToString(candles)}
         """.trimIndent()
 
-        val completionContent = getGPTCompletion(Constants.VERIFY_TRADE_DEV_MESSAGE, userMessage, structuredResponseSchema)
+        val completionContent = getGPTCompletion(Constants.VERIFY_TRADE_GENERIC_DEV_MESSAGE, userMessage, structuredResponseSchema)
         return Json.decodeFromString<OpenAiTradeValidityResponse>(completionContent!!).valid
     }
 

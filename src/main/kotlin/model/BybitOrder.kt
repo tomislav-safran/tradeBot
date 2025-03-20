@@ -25,7 +25,7 @@ data class BybitTradingStopOrder(
     val category: String = "linear",
     val symbol: String,
     val trailingStop: String,
-    val activePrice: String,
+    val activePrice: String? = null,
     val tpslMode: String = "Full",
     val positionIdx: Int = 0,
 )

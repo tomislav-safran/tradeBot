@@ -9,4 +9,5 @@ data class OrderAlert(
     val limit: Double,
     val stop: Double,
     val isLong: Boolean,
+    val useTrailingStop: Boolean = false,
 )

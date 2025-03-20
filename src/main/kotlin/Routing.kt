@@ -32,7 +32,7 @@ fun Application.configureRouting() {
         post("/linear/order/ai") {
             val body = call.receive<OrderAlert>()
             if (OpenAIService.verifyTradeWithAI(body, "15", "90", "linear")) {
-                BybitService.placeFutureMarketTpSlOrder(body, true)
+                BybitService.placeFutureMarketTpSlOrder(body)
                 call.respond(HttpStatusCode.OK)
             }
             call.respond(HttpStatusCode.OK, "AI deemed trade to be invalid")

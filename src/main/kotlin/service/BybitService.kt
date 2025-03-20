@@ -79,7 +79,7 @@ object BybitService {
         logger.info { "Order Response: $responseBody" }
     }
 
-    suspend fun placeFutureMarketTpSlOrder(alert: OrderAlert, trailingBreakEven: Boolean = false) {
+    suspend fun placeFutureMarketTpSlOrder(alert: OrderAlert) {
         if (getActiveOrdersCount("linear", alert.coin) > 0) throw RuntimeException("Only 1 order is allowed at a time")
 
         val instrumentInfo = getLinearInstrumentInfo(alert.coin)
@@ -91,8 +91,8 @@ object BybitService {
 
         val response = placeOrder(jsonBody)
 
-        if (trailingBreakEven) {
-            setTrailingBreakEven(alert)
+        if (alert.useTrailingStop) {
+            setTrailingStop(alert)
         }
 
         val responseBody = response.bodyAsText()
@@ -109,17 +109,16 @@ object BybitService {
         }
     }
 
-    private suspend fun setTrailingBreakEven(alert: OrderAlert): HttpResponse {
+    private suspend fun setTrailingStop(alert: OrderAlert): HttpResponse {
         val close = alert.close.toBigDecimal()
         val stop = alert.stop.toBigDecimal()
 
         val slDistance = close.subtract(stop).abs()
-        val trailingStopTrigger = if (alert.isLong) close.add(slDistance) else close.subtract(slDistance)
+        //val trailingStopTrigger = if (alert.isLong) close.add(slDistance) else close.subtract(slDistance)
 
         val tradingStopOrder = BybitTradingStopOrder(
             symbol = alert.coin,
-            trailingStop = slDistance.toString(),
-            activePrice = trailingStopTrigger.toString(),
+            trailingStop = slDistance.toString()
         )
 
         val body = json.encodeToString(tradingStopOrder)
