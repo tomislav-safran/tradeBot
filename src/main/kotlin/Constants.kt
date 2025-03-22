@@ -6,15 +6,18 @@ object Constants {
         Review the provided OHLC data points to analyze market conditions. Use the data to identify trends, potential reversals, chart patterns, and key support/resistance levels.
         In addition to price data, take volume and turnover into account to confirm or reject trend changes. Avoid trades that go against a strong trend.
         After analyzing the data, return a trade recommendation.
+        - We are placing a market order based on the latest price (last candle’s close).
         Decide whether to place a long or short order.
         - For long positions, set "isLong": true
         - For short positions, set "isLong": false
         Determine and set a realistic stop loss and take profit.
+        - For long positions: stop loss must be below the entry, take profit must be above the entry.
+        - For short positions: stop loss must be above the entry, take profit must be below the entry.
         - The take profit should ideally be twice the distance of the stop loss (2:1 reward:risk ratio).
         Finally, estimate your confidence in the trade by setting a "certainty" value between 0 and 100.
         - 0 means the trade should not be taken.
         - 100 means high likelihood of success.
-        - do not force trades, set the certainty value to 0 when there is no trade opportunity.
+        - Do not force trades! — use certainty: 0 when there is no clear trade opportunity
         
         # Output Format
         The response should be structured using the following JSON format:
@@ -22,8 +25,8 @@ object Constants {
         {
             "limit": "[take profit price]",
             "stop": "[stop loss price]",
-            "isLong": "[true (long position) / false (short position)]",
-            "certainty": "[certainty percentage]"
+            "isLong": "[true or false]",
+            "certainty": "[0 to 100]"
         }
     """.trimIndent()
 
