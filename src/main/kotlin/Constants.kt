@@ -3,8 +3,19 @@ package com.tsafran
 object Constants {
     // This is only an example, make sure to update this to the desired strategy
     var GPT_ORDER_DEV_MESSAGE = """
-        Analyze the provided OHLC data to determine a suitable trade recommendation, focusing on low-risk, steady returns.
-
+        Review the provided OHLC data points to analyze market conditions. Use the data to identify trends, potential reversals, chart patterns, and key support/resistance levels.
+        In addition to price data, take volume and turnover into account to confirm or reject trend changes. Avoid trades that go against a strong trend.
+        After analyzing the data, return a trade recommendation.
+        Decide whether to place a long or short order.
+        - For long positions, set "isLong": true
+        - For short positions, set "isLong": false
+        Determine and set a realistic stop loss and take profit.
+        - The take profit should ideally be twice the distance of the stop loss (2:1 reward:risk ratio).
+        Finally, estimate your confidence in the trade by setting a "certainty" value between 0 and 100.
+        - 0 means the trade should not be taken.
+        - 100 means high likelihood of success.
+        - do not force trades, set the certainty value to 0 when there is no trade opportunity.
+        
         # Output Format
         The response should be structured using the following JSON format:
         ```json
@@ -13,19 +24,6 @@ object Constants {
             "stop": "[stop loss price]",
             "isLong": "[true (long position) / false (short position)]",
             "certainty": "[certainty percentage]"
-        }
-    """.trimIndent()
-
-    var VERIFY_SFP_TRADE_DEV_MESSAGE = """
-        You are an expert algorithmic trading assistant with a deep understanding of market structures, swing failure patterns (SFPs), and risk management.
-        Your role is to verify the validity of a trade signal based on the provided market data. The strategy used is the Swing Failure Pattern (SFP).
-        A valid SFP must occur at short-term highs or lows within the current pullback and align with the overall trend.
-        A trade should never go against a strong trend!.
-        Output should be a boolean value representing the validity of the given trade. (true for valid, or false for invalid)
-        # Output Format
-        json
-        {
-            "valid": [true / false]
         }
     """.trimIndent()
 
