@@ -97,7 +97,8 @@ object OpenAIService {
                     close = candles.list[0][4].toDouble(),
                     stop = gptResponse.stop,
                     limit = gptResponse.limit,
-                    isLong = gptResponse.isLong
+                    isLong = gptResponse.isLong,
+                    useTrailingStop = true
                 )
 
                 BybitService.placeFutureMarketTpSlOrder(alert)
