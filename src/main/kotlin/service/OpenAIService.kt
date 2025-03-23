@@ -85,7 +85,7 @@ object OpenAIService {
         for (symbol in schedulerCommand.symbols) {
             if (BybitService.getActiveOrdersCount("linear", symbol) > 0) {
                 logger.info { "Skipping $symbol order" }
-                break
+                continue
             }
 
             val candles = BybitService.getHistoricCandles(symbol, "15", schedulerCommand.candleLookBack, "linear").result
