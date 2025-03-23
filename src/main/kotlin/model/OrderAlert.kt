@@ -11,3 +11,10 @@ data class OrderAlert(
     val isLong: Boolean,
     val useTrailingStop: Boolean = false,
 )
+
+@Serializable
+data class GptSchedulerCommand(
+    val symbols: List<String>,
+    val candleLookBack: String,
+    val certaintyThreshold: Int
+)

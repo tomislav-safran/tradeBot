@@ -7,6 +7,7 @@ import com.openai.models.ResponseFormatJsonSchema
 import com.openai.models.ResponseFormatJsonSchema.JsonSchema
 import com.openai.models.chat.completions.ChatCompletionCreateParams
 import com.tsafran.Constants
+import com.tsafran.model.GptSchedulerCommand
 import com.tsafran.model.HistoricCandlesResult
 import com.tsafran.model.OpenAiMarketAlert
 import com.tsafran.model.OpenAiTradeValidityResponse
@@ -26,7 +27,7 @@ private val logger = KotlinLogging.logger {}
 object OpenAIService {
     private fun getGPTCompletion(devMessage: String, userMessage: String, responseSchema: JsonSchema.Schema): String? {
         val createParams: ChatCompletionCreateParams = ChatCompletionCreateParams.builder()
-            .model(ChatModel.GPT_4O_MINI)
+            .model(ChatModel.GPT_4_5_PREVIEW)
             .maxCompletionTokens(2048)
             .responseFormat(ResponseFormatJsonSchema.builder()
                 .jsonSchema(JsonSchema.builder()
@@ -80,24 +81,30 @@ object OpenAIService {
         return json.decodeFromString<OpenAiMarketAlert>(completionContent!!)
     }
 
-    suspend fun placeAIOrder() {
-        BybitService.checkForActiveOrders("linear", listOf("BTCUSDT"))
+    suspend fun placeAIOrder(schedulerCommand: GptSchedulerCommand) {
+        for (symbol in schedulerCommand.symbols) {
+            if (BybitService.getActiveOrdersCount("linear", symbol) > 0) {
+                logger.info { "Skipping $symbol order" }
+                break
+            }
 
-        val candles = BybitService.getHistoricCandles("BTCUSDT", "15", "90", "linear").result
-        val gptResponse = getAiOrderSuggestion(candles)
+            val candles = BybitService.getHistoricCandles(symbol, "15", schedulerCommand.candleLookBack, "linear").result
+            val gptResponse = getAiOrderSuggestion(candles)
 
-        if (gptResponse.certainty >= 75.0) {
-            val alert = OrderAlert(
-                coin = "BTCUSDT",
-                close = candles.list[0][4].toDouble(),
-                stop = gptResponse.stop,
-                limit = gptResponse.limit,
-                isLong = gptResponse.isLong,
-            )
+            if (gptResponse.certainty >= schedulerCommand.certaintyThreshold) {
+                val alert = OrderAlert(
+                    coin = symbol,
+                    close = candles.list[0][4].toDouble(),
+                    stop = gptResponse.stop,
+                    limit = gptResponse.limit,
+                    isLong = gptResponse.isLong
+                )
 
-            BybitService.placeFutureMarketTpSlOrder(alert)
+                BybitService.placeFutureMarketTpSlOrder(alert)
+            }
         }
     }
+
 
     suspend fun verifyTradeWithAI(alert: OrderAlert, timeframe: String, candleLookBackPeriod: String, category: String): Boolean {
         val candles = BybitService.getHistoricCandles(alert.coin, timeframe, candleLookBackPeriod, category).result

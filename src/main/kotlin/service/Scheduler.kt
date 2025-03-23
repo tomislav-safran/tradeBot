@@ -10,12 +10,12 @@ import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
 
-class Scheduler(private val task: suspend () -> Unit) {
+class Scheduler() {
     private val logger = KotlinLogging.logger {}
 
     private var job: Job? = null
 
-    fun start() {
+    fun start(task: suspend () -> Unit) {
         if (job != null) return
 
         job = CoroutineScope(Dispatchers.IO).launch {
