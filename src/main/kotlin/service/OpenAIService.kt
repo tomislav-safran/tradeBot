@@ -27,7 +27,7 @@ private val logger = KotlinLogging.logger {}
 object OpenAIService {
     private fun getGPTCompletion(devMessage: String, userMessage: String, responseSchema: JsonSchema.Schema): String? {
         val createParams: ChatCompletionCreateParams = ChatCompletionCreateParams.builder()
-            .model(ChatModel.GPT_4O)
+            .model(ChatModel.CHATGPT_4O_LATEST)
             .maxCompletionTokens(2048)
             .responseFormat(ResponseFormatJsonSchema.builder()
                 .jsonSchema(JsonSchema.builder()
@@ -65,6 +65,8 @@ object OpenAIService {
                     )
                 )
             )
+            .putAdditionalProperty("required", JsonValue.from(listOf("limit", "stop", "isLong", "certainty")))
+            .putAdditionalProperty("additionalProperties", JsonValue.from(false))
             .build()
 
         val userMessage = """
