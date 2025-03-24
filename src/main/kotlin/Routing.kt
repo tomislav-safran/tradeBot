@@ -11,6 +11,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.receive
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import java.time.Duration
 
 fun Application.configureRouting() {
     val gptOrderScheduler = Scheduler()
@@ -43,7 +44,9 @@ fun Application.configureRouting() {
 
         post("/start-gpt-trader") {
             val body = call.receive<GptSchedulerCommand>()
-            gptOrderScheduler.start { placeAIOrder(body) }
+            gptOrderScheduler.start(Duration.ofMinutes(body.intervalMinutes)) {
+                placeAIOrder(body)
+            }
             call.respondText("Scheduler started")
         }
 

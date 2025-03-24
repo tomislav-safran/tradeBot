@@ -16,5 +16,6 @@ data class OrderAlert(
 data class GptSchedulerCommand(
     val symbols: List<String>,
     val candleLookBack: String,
-    val certaintyThreshold: Int
+    val certaintyThreshold: Int,
+    val intervalMinutes: Long
 )

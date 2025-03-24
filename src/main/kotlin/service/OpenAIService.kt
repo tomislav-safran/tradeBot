@@ -27,7 +27,7 @@ private val logger = KotlinLogging.logger {}
 object OpenAIService {
     private fun getGPTCompletion(devMessage: String, userMessage: String, responseSchema: JsonSchema.Schema): String? {
         val createParams: ChatCompletionCreateParams = ChatCompletionCreateParams.builder()
-            .model(ChatModel.CHATGPT_4O_LATEST)
+            .model(ChatModel.GPT_4_5_PREVIEW)
             .maxCompletionTokens(2048)
             .responseFormat(ResponseFormatJsonSchema.builder()
                 .jsonSchema(JsonSchema.builder()
@@ -69,10 +69,13 @@ object OpenAIService {
             .putAdditionalProperty("additionalProperties", JsonValue.from(false))
             .build()
 
+        val ema = calculateEMA(candles.list.map { candle -> candle[4].toDouble() }.toList())
+
         val userMessage = """
-            Last 90 candles: (format: [timestamp, open, high, low, close, volume, turnover])
+            EMA${candles.list.size}: $ema,
+            Last ${candles.list.size} candles: (format: [timestamp, open, high, low, close, volume, turnover])
             ${Json.encodeToString(candles)}
-        """
+        """.trimIndent()
 
         val completionContent = getGPTCompletion(Constants.GPT_ORDER_DEV_MESSAGE, userMessage, structuredResponseSchema)
 
@@ -90,7 +93,7 @@ object OpenAIService {
                 continue
             }
 
-            val candles = BybitService.getHistoricCandles(symbol, "15", schedulerCommand.candleLookBack, "linear").result
+            val candles = BybitService.getHistoricCandles(symbol, schedulerCommand.intervalMinutes.toString(), schedulerCommand.candleLookBack, "linear").result
             val gptResponse = getAiOrderSuggestion(candles)
 
             if (gptResponse.certainty >= schedulerCommand.certaintyThreshold) {

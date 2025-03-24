@@ -97,3 +97,15 @@ fun getMaxDecimalsForLinearSymbol(instrument: LinearInstrumentInfo?): MaxDecimal
     }
     error("Instrument not found")
 }
+
+fun calculateEMA(prices: List<Double>): Double {
+    val period = prices.size
+    val k = 2.0 / (period + 1)
+    var ema = prices.take(period).average() // SMA as starting value
+
+    for (i in period until prices.size) {
+        ema = prices[i] * k + ema * (1 - k)
+    }
+
+    return ema
+}
