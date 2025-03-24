@@ -103,7 +103,7 @@ object OpenAIService {
                     stop = gptResponse.stop,
                     limit = gptResponse.limit,
                     isLong = gptResponse.isLong,
-                    useTrailingStop = true
+                    useTrailingStop = schedulerCommand.useTrailingStop
                 )
 
                 BybitService.placeFutureMarketTpSlOrder(alert)
