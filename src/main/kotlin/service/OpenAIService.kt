@@ -27,16 +27,17 @@ private val logger = KotlinLogging.logger {}
 object OpenAIService {
     private fun getGPTCompletion(devMessage: String, userMessage: String, responseSchema: JsonSchema.Schema): String? {
         val createParams: ChatCompletionCreateParams = ChatCompletionCreateParams.builder()
-            .model(ChatModel.GPT_4_5_PREVIEW)
+            .model(ChatModel.GPT_4O)
             .maxCompletionTokens(2048)
             .responseFormat(ResponseFormatJsonSchema.builder()
                 .jsonSchema(JsonSchema.builder()
                     .name("order")
                     .schema(responseSchema)
+                    .strict(true)
                     .build())
                 .build())
-            .addDeveloperMessage(devMessage)
-            .addUserMessage(Json.encodeToString(userMessage))
+            .addSystemMessage(devMessage)
+            .addUserMessage(userMessage)
             .build()
 
         val completions = openAIClient.chat().completions().create(createParams)
@@ -92,6 +93,8 @@ object OpenAIService {
                 logger.info { "Skipping $symbol order" }
                 continue
             }
+
+            logger.info { "Preparing $symbol order" }
 
             val candles = BybitService.getHistoricCandles(symbol, schedulerCommand.intervalMinutes.toString(), schedulerCommand.candleLookBack, "linear").result
             val gptResponse = getAiOrderSuggestion(candles)
