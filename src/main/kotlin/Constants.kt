@@ -14,7 +14,6 @@ object Constants {
         For long positions: stop loss must be below the entry, take profit must be above the entry.
         For short positions: stop loss must be above the entry, take profit must be below the entry.
         The take profit distance should be bigger than stop lass, and should ideally be at least twice the distance of the stop loss (2:1 reward:risk ratio).
-        Stop loss should be reasonably tight to favor higher reward:risk ratio and to avoid staying in losing trades for too long.
         Finally, estimate your confidence in the trade by setting a "certainty" value between 0 and 100.
         0 means the trade should not be taken.
         100 means guaranteed success.
