@@ -14,6 +14,8 @@ import com.tsafran.model.OpenAiTradeValidityResponse
 import com.tsafran.model.OrderAlert
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.json.Json
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.Map
 
 private val openAiApiKey: String = System.getenv("OPEN_AI_API_KEY") ?: error("OPEN_AI_API_KEY is not set")
@@ -44,8 +46,9 @@ object OpenAIService {
 
         val completionContent = completions.choices().firstOrNull()?.message()?.content()?.orElse(null)
 
-        if (completionContent == null) {
-            error("GPT did not return any valid content.")
+        if (completionContent == null || completionContent.isEmpty()) {
+            logger.error { "GPT did not return any valid content." }
+            return null
         }
 
         logger.info { "GPT response: $completionContent" }
@@ -73,7 +76,7 @@ object OpenAIService {
         val ema = calculateEMA(candles.list.map { candle -> candle[4].toDouble() }.toList())
 
         val userMessage = """
-            EMA${candles.list.size}: $ema,
+            EMA${candles.list.size}: ${BigDecimal(ema).setScale(2, RoundingMode.HALF_UP)},
             Last ${candles.list.size} candles: (format: [timestamp, open, high, low, close, volume, turnover])
             ${Json.encodeToString(candles)}
         """.trimIndent()
@@ -84,7 +87,11 @@ object OpenAIService {
             ignoreUnknownKeys = true
         }
 
-        return json.decodeFromString<OpenAiMarketAlert>(completionContent!!)
+        completionContent?.let {
+            return json.decodeFromString<OpenAiMarketAlert>(completionContent)
+        }
+
+        return OpenAiMarketAlert(0.0, 0.0, false, 0.0)
     }
 
     suspend fun placeAIOrder(schedulerCommand: GptSchedulerCommand) {
