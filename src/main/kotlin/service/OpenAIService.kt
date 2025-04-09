@@ -78,7 +78,7 @@ object OpenAIService {
         val userMessage = """
             EMA${candles.list.size}: ${BigDecimal(ema).setScale(2, RoundingMode.HALF_UP)},
             Last ${candles.list.size} candles: (format: [timestamp, open, high, low, close, volume, turnover])
-            ${Json.encodeToString(candles)}
+            ${Json.encodeToString(candles).replace("\"","")}
         """.trimIndent()
 
         val completionContent = getGPTCompletion(Constants.GPT_ORDER_DEV_MESSAGE, userMessage, structuredResponseSchema)

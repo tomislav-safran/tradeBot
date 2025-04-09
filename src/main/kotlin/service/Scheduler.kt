@@ -4,6 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -11,14 +12,13 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
-class Scheduler() {
+class Scheduler {
     private val logger = KotlinLogging.logger {}
-    private var job: Job? = null
+    private val jobs = mutableListOf<Job>()
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     fun start(interval: Duration, task: suspend () -> Unit) {
-        if (job != null) return
-
-        job = CoroutineScope(Dispatchers.IO).launch {
+        val job = scope.launch {
             while (isActive) {
                 val now = LocalDateTime.now()
                 val nextRun = calculateNextRun(now, interval)
@@ -30,16 +30,17 @@ class Scheduler() {
                 try {
                     task()
                 } catch (e: Exception) {
-                    logger.error { "Error executing scheduled task: ${e.message}" }
+                    logger.error(e) { "Error executing scheduled task: ${e.message}" }
                 }
             }
         }
+        jobs.add(job)
     }
 
     fun stop() {
-        job?.cancel()
-        job = null
-        logger.info { "Scheduler stopped." }
+        jobs.forEach { it.cancel() }
+        jobs.clear()
+        logger.info { "All scheduled jobs stopped." }
     }
 
     private fun calculateNextRun(now: LocalDateTime, interval: Duration): LocalDateTime {
