@@ -3,14 +3,13 @@
 **Automated trading bot built with Kotlin + Ktor**  
 Deploys easily via Docker. Integrates with Bybit and OpenAI for smart, customizable trading logic.
 
-## 🚀 Features
+## Features
 
-- 📩 Accepts webhook alerts from your favorite charting platform (e.g., TradingView)
-- 📊 Places **spot** or **perpetual** trades on Bybit with **TP/SL**
-- 🧠 Optional AI-powered alert validation
-- 🤖 Fully automated **ChatGPT-driven trades**
+- Accepts webhook alerts from your favorite charting platform (e.g., TradingView)
+- Places **spot** or **perpetual** trades on Bybit with **TP/SL**
+- Fully automated **ChatGPT-driven trades**
 
-## 🔧 Setup
+## Setup
 
 1. Clone the repo:
    ```
@@ -31,7 +30,7 @@ Deploys easily via Docker. Integrates with Bybit and OpenAI for smart, customiza
    docker-compose up --build
    ```
 
-## 📬 Webhook Format
+## Webhook Format
 Send webhook alerts from TradingView or any platform in a supported JSON format:
 ```
 {
