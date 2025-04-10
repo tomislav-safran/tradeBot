@@ -43,6 +43,18 @@ Send webhook alerts from TradingView or any platform in a supported JSON format:
 }
 ```
 
+## GPT Automated trades
+Send a request to **port/start-gpt-trader** with the following body to start the automated trading bot:
+```
+{
+    "symbols": ["BTCUSDT", "SOLUSDT"],    // list of symbols you want to trade
+    "candleLookBack": "100",              // the amount of historic candles to use as context
+    "certaintyThreshold": 75,             // how sure do you want the bot to be before placing a trade
+    "intervalMinutes": 30,                // trading interval
+    "useTrailingStop": false              // set to true to use trailing stops instead of fixed ones 
+}
+```
+
 ## ⚠️ Notes
 This project is still very much WIP, usage with live accounts not recommended.
 Uses Bybit’s API for real order execution. Use with caution on live accounts.
