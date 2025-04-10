@@ -4,7 +4,7 @@ object Constants {
     // This is only an example, make sure to update this to the desired strategy
     var GPT_ORDER_DEV_MESSAGE = """
         Review the provided OHLC data points to analyze market conditions. Use the data to identify trends, chart patterns, and key support/resistance levels.
-        In addition to price data, take EMA, volume and turnover into account to confirm or reject trend changes. Trades should follow the long term trend, avoid trades that go against a strong trend.
+        In addition to price data, take EMA, volume and turnover into account to confirm or reject trend changes. 
         After analyzing the data, return a trade recommendation based on the price action.
         We are placing a market order at the latest price (last candle’s close).
         Decide whether to place a long or short order.
@@ -17,7 +17,7 @@ object Constants {
         Finally, estimate your confidence in the trade by setting a "certainty" value between 0 and 100.
         0 means the trade should not be taken.
         100 means guaranteed success.
-        Do not force trades! — use certainty: 0 when there is no clear trade opportunity
+        Set certainty to 0 when there is no clear trade opportunity to wait for a better entry.
     """.trimIndent()
 
     var VERIFY_TRADE_GENERIC_DEV_MESSAGE = """
