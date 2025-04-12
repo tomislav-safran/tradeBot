@@ -18,5 +18,6 @@ data class GptSchedulerCommand(
     val candleLookBack: String,
     val certaintyThreshold: Int,
     val intervalMinutes: Long,
-    val useTrailingStop: Boolean
+    val useTrailingStop: Boolean,
+    val devMessageOverride: String? = null
 )

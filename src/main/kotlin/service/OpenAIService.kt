@@ -10,7 +10,6 @@ import com.tsafran.Constants
 import com.tsafran.model.GptSchedulerCommand
 import com.tsafran.model.HistoricCandlesResult
 import com.tsafran.model.OpenAiMarketAlert
-import com.tsafran.model.OpenAiTradeValidityResponse
 import com.tsafran.model.OrderAlert
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.json.Json
@@ -56,7 +55,7 @@ object OpenAIService {
         return completionContent
     }
 
-    private fun getAiOrderSuggestion(candles: HistoricCandlesResult): OpenAiMarketAlert {
+    private fun getAiOrderSuggestion(candles: HistoricCandlesResult, devMessageOverride: String?): OpenAiMarketAlert {
         val structuredResponseSchema: JsonSchema.Schema = JsonSchema.Schema.builder()
             .putAdditionalProperty("type", JsonValue.from("object"))
             .putAdditionalProperty(
@@ -73,15 +72,20 @@ object OpenAIService {
             .putAdditionalProperty("additionalProperties", JsonValue.from(false))
             .build()
 
-        val ema = calculateEMA(candles.list.map { candle -> candle[4].toDouble() }.toList())
+        val ohlcv = mapCandleResultToOhlcv(candles)
+        val ema = calculateEMA(ohlcv.map { candle -> candle.close.toDouble() })
+        val ema50 = if (ohlcv.size >= 50) calculateEMA(ohlcv.take(50).map { candle -> candle.close.toDouble() }) else 0.0
 
         val userMessage = """
             EMA${candles.list.size}: ${BigDecimal(ema).setScale(2, RoundingMode.HALF_UP)},
-            Last ${candles.list.size} candles: (format: [timestamp, open, high, low, close, volume, turnover])
-            ${Json.encodeToString(candles).replace("\"","")}
+            ${if (ema50 != 0.0) "EMA50: ${BigDecimal(ema50).setScale(2, RoundingMode.HALF_UP)}," else ""}
+            Last ${candles.list.size} candles: (format: [open, high, low, close, volume]), first candle is the latest one.
+            ${candles.toString().replace("\"","")}
         """.trimIndent()
 
-        val completionContent = getGPTCompletion(Constants.GPT_ORDER_DEV_MESSAGE, userMessage, structuredResponseSchema)
+        val devMessage = devMessageOverride?.trimIndent() ?: Constants.GPT_ORDER_DEV_MESSAGE
+
+        val completionContent = getGPTCompletion(devMessage, userMessage, structuredResponseSchema)
 
         val json = Json {
             ignoreUnknownKeys = true
@@ -104,7 +108,7 @@ object OpenAIService {
             logger.info { "Preparing $symbol order" }
 
             val candles = BybitService.getHistoricCandles(symbol, schedulerCommand.intervalMinutes.toString(), schedulerCommand.candleLookBack, "linear").result
-            val gptResponse = getAiOrderSuggestion(candles)
+            val gptResponse = getAiOrderSuggestion(candles, schedulerCommand.devMessageOverride)
 
             if (gptResponse.certainty >= schedulerCommand.certaintyThreshold) {
                 val alert = OrderAlert(
@@ -120,32 +124,4 @@ object OpenAIService {
             }
         }
     }
-
-
-    suspend fun verifyTradeWithAI(alert: OrderAlert, timeframe: String, candleLookBackPeriod: String, category: String): Boolean {
-        val candles = BybitService.getHistoricCandles(alert.coin, timeframe, candleLookBackPeriod, category).result
-
-        val structuredResponseSchema: JsonSchema.Schema = JsonSchema.Schema.builder()
-            .putAdditionalProperty("type", JsonValue.from("object"))
-            .putAdditionalProperty(
-                "properties", JsonValue.from(
-                    Map.of("valid", Map.of("type", "boolean"))
-                )
-            ).build()
-
-        val userMessage = """
-            Trade signal: {
-                close price: ${alert.close}
-                stop price: ${alert.stop}
-                limit price: ${alert.limit}
-                trade direction: ${if (alert.isLong) "Long" else "Short"}
-            }
-            Last $candleLookBackPeriod candles: (format: [timestamp, open, high, low, close, volume, turnover])
-            ${Json.encodeToString(candles)}
-        """.trimIndent()
-
-        val completionContent = getGPTCompletion(Constants.VERIFY_TRADE_GENERIC_DEV_MESSAGE, userMessage, structuredResponseSchema)
-        return Json.decodeFromString<OpenAiTradeValidityResponse>(completionContent!!).valid
-    }
-
 }

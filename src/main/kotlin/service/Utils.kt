@@ -1,9 +1,11 @@
 package com.tsafran.service
 
 import com.tsafran.model.BybitOrder
+import com.tsafran.model.HistoricCandlesResult
 import com.tsafran.model.InstrumentInfo
 import com.tsafran.model.LinearInstrumentInfo
 import com.tsafran.model.MaxDecimalsDTO
+import com.tsafran.model.OHLCV
 import com.tsafran.model.OrderAlert
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -108,4 +110,10 @@ fun calculateEMA(prices: List<Double>): Double {
     }
 
     return ema
+}
+
+fun mapCandleResultToOhlcv(candles: HistoricCandlesResult): List<OHLCV > {
+    return candles.list.map { candle ->
+        OHLCV(open = candle[1], high = candle[2], low = candle[3], close = candle[4], volume = candle[5])
+    }
 }
