@@ -79,8 +79,8 @@ object OpenAIService {
         val userMessage = """
             EMA${candles.list.size}: ${BigDecimal(ema).setScale(2, RoundingMode.HALF_UP)},
             ${if (ema50 != 0.0) "EMA50: ${BigDecimal(ema50).setScale(2, RoundingMode.HALF_UP)}," else ""}
-            Last ${candles.list.size} candles: (format: [open, high, low, close, volume]), first candle is the latest one.
-            ${candles.toString().replace("\"","")}
+            Last ${ohlcv.size} candles: (format: [open, high, low, close, volume]), first candle is the latest one.
+            ${ohlcv.toString().replace("\"","")}
         """.trimIndent()
 
         val devMessage = devMessageOverride?.trimIndent() ?: Constants.GPT_ORDER_DEV_MESSAGE
