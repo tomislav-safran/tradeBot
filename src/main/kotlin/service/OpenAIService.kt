@@ -141,7 +141,7 @@ object OpenAIService {
 
     suspend fun placeAIOrder(schedulerCommand: GptSchedulerCommand) {
         for (symbol in schedulerCommand.symbols) {
-            val activeOrderResult = BybitService.getActiveOrder("linear, symbol").result
+            val activeOrderResult = BybitService.getActiveOrder("linear", symbol).result
 
             // active position exists for symbol
             if ((activeOrderResult.list?.size ?: 0) > 0) {
