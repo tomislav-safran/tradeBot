@@ -7,5 +7,5 @@ data class OpenAiMarketAlert(
     val limit: Double,
     val stop: Double,
     val isLong: Boolean,
-    val certainty: Double
+    val probability: Double
 )

@@ -21,6 +21,17 @@ data class BybitOrder(
 )
 
 @Serializable
+data class BybitCancelOrder(
+    val category: String = "linear",
+    val symbol: String,
+    val side: String,
+    val orderType: String = "Market",
+    val qty: String = "0",
+    val reduceOnly: Boolean = true,
+    val closeOnTrigger: Boolean = true,
+)
+
+@Serializable
 data class BybitTradingStopOrder(
     val category: String = "linear",
     val symbol: String,

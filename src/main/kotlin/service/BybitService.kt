@@ -101,6 +101,15 @@ object BybitService {
         logger.info { "Order Response: $responseBody" }
     }
 
+    suspend fun closePosition(activeOrder: OrderInfo) {
+        val order = BybitCancelOrder(
+            symbol = activeOrder.symbol,
+            side = if (activeOrder.side == "Buy") "Sell" else "Buy"
+        )
+        val jsonBody = json.encodeToString(order)
+        placeOrder(jsonBody)
+    }
+
     private suspend fun placeOrder(body: String): HttpResponse {
         return client.post("$baseUrl/v5/order/create") {
             contentType(ContentType.Application.Json)
@@ -131,22 +140,21 @@ object BybitService {
     }
 
     suspend fun getActiveOrdersCount(category: String = "spot", symbol: String? = null): Int {
-        var queryParams = "category=$category"
-        queryParams += symbol?.let { "&symbol=$symbol" }
-
-        val response: BybitApiResponse<OrderResult> = client.get("$baseUrl/v5/order/realtime?$queryParams") {
-            authHeaders(queryParams).forEach { (key, value) -> header(key, value) }
-        }.body()
+        val response = getActiveOrder(category, symbol)
 
         logger.info { response.retMsg }
         return response.result.list?.size ?: 0
     }
 
-    suspend fun checkForActiveOrders(category: String = "spot", symbols: List<String>) {
-        if (symbols.any { getActiveOrdersCount(category, it) > 0 }) {
-            error("Only 1 order is allowed at a time")
-        }
+    suspend fun getActiveOrder(category: String = "spot", symbol: String? = null): BybitApiResponse<OrderResult> {
+        var queryParams = "category=$category"
+        queryParams += symbol?.let { "&symbol=$symbol" }
+
+        return client.get("$baseUrl/v5/order/realtime?$queryParams") {
+            authHeaders(queryParams).forEach { (key, value) -> header(key, value) }
+        }.body()
     }
+
 
     private suspend fun getSpotInstrumentInfo(symbol: String): BybitApiResponse<InstrumentInfoResult> {
         return getInstrumentInfo(symbol, "spot").body()

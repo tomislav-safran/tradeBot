@@ -16,8 +16,11 @@ data class OrderAlert(
 data class GptSchedulerCommand(
     val symbols: List<String>,
     val candleLookBack: String,
-    val certaintyThreshold: Int,
+    val probabilityThreshold: Int,
     val intervalMinutes: Long,
     val useTrailingStop: Boolean,
-    val devMessageOverride: String? = null
+    val devMessageOverride: String? = null,
+    val validateOpenPositions: Boolean = false,
+    val validationCandleLookBack: String = "50",
+    val validationDevMessageOverride: String? = null,
 )
