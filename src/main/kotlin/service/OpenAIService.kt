@@ -34,7 +34,6 @@ object OpenAIService {
             .maxCompletionTokens(2048)
             .responseFormat(ResponseFormatJsonSchema.builder()
                 .jsonSchema(JsonSchema.builder()
-                    .name("order")
                     .schema(responseSchema)
                     .strict(true)
                     .build())
@@ -118,7 +117,7 @@ object OpenAIService {
         val ema = calculateEMA(ohlcv.map { candle -> candle.close.toDouble() })
 
         val userMessage = """
-            Open position info: side = ${position.side}, take profit = ${position.takeProfit}, stop loss = ${position.stopLoss}, unrealised PnL = ${position.unrealisedPnl}
+            Open position info: side = ${position.side}, entry price =${position.avgPrice} take profit = ${position.takeProfit}, stop loss = ${position.stopLoss}, unrealised PnL = ${position.unrealisedPnl}, 
             EMA${candles.list.size}: ${BigDecimal(ema).setScale(2, RoundingMode.HALF_UP)},
             Last ${ohlcv.size} candles: (format: [open, high, low, close, volume]), first candle is the latest one.
             ${ohlcv.toString().replace("\"","")}

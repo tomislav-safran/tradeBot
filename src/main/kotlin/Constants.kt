@@ -24,8 +24,7 @@ object Constants {
         Determine if the current market conditions indicate the trade should remain open, 
         or if signs of reversal or weakening trend suggest the position should be closed immediately.
         Response format: { "closePosition": true/false }
-        Decision criteria:
-        Close position (true) if: there's clear evidence of trend reversal or significant weakening of momentum.
-        Maintain position (false) if: the trend remains strong in the trade direction and no significant signs of reversal detected.
+        Set closePosition to true if there's clear evidence of trend reversal or significant weakening of momentum.
+        Set closePosition to false if the trend remains strong in the trade direction and no significant signs of reversal detected.
     """.trimIndent()
 }
