@@ -101,7 +101,7 @@ object BybitService {
         logger.info { "Order Response: $responseBody" }
     }
 
-    suspend fun closePosition(activeOrder: OrderInfo) {
+    suspend fun closePosition(activeOrder: PositionInfo) {
         val order = BybitCancelOrder(
             symbol = activeOrder.symbol,
             side = if (activeOrder.side == "Buy") "Sell" else "Buy"
@@ -155,6 +155,14 @@ object BybitService {
         }.body()
     }
 
+    suspend fun getActivePosition(category: String = "linear", symbol: String? = null): BybitApiResponse<PositionResult> {
+        var queryParams = "category=$category"
+        queryParams += symbol?.let { "&symbol=$symbol" }
+
+        return client.get("$baseUrl/v5/position/list?$queryParams") {
+            authHeaders(queryParams).forEach { (key, value) -> header(key, value) }
+        }.body()
+    }
 
     private suspend fun getSpotInstrumentInfo(symbol: String): BybitApiResponse<InstrumentInfoResult> {
         return getInstrumentInfo(symbol, "spot").body()
