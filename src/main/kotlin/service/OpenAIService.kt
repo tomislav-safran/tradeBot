@@ -34,6 +34,7 @@ object OpenAIService {
             .maxCompletionTokens(2048)
             .responseFormat(ResponseFormatJsonSchema.builder()
                 .jsonSchema(JsonSchema.builder()
+                    .name("trade_order")
                     .schema(responseSchema)
                     .strict(true)
                     .build())
