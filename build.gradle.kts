@@ -41,7 +41,7 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
 
     //openAI
-    implementation("com.openai:openai-java:0.34.1")
+    implementation("com.openai:openai-java:1.4.1")
 
     //logging
     implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")

@@ -6,6 +6,7 @@ object Constants {
         Review the provided OHLCV (open, high, low, close, volume) and EMA data points to analyze market conditions. 
         Use the data to identify and confirm trends, chart patterns, and key support/resistance levels.
         After analyzing the data, return a trade recommendation based on the price action.
+        Focus on low risk, steady gain strategies.
         We are placing a market order at the latest price (last candle’s close).
         Decide whether to place a long or short order.
         For long positions, set "isLong": true.
@@ -24,7 +25,7 @@ object Constants {
         Determine if the current market conditions indicate the trade should remain open, 
         or if signs of reversal or weakening trend suggest the position should be closed immediately.
         Response format: { "closePosition": true/false }
-        Set closePosition to true if there's clear evidence of trend reversal or significant weakening of momentum.
+        Set closePosition to true if there's clear evidence of trend reversal or weakening of momentum.
         Set closePosition to false if the trend remains strong in the trade direction and no significant signs of reversal detected.
     """.trimIndent()
 }
