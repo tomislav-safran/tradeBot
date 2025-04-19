@@ -14,6 +14,7 @@ data class OrderAlert(
 
 @Serializable
 data class GptSchedulerCommand(
+    val gptModel: String? = null,
     val symbols: List<String>,
     val candleLookBack: String,
     val probabilityThreshold: Int,

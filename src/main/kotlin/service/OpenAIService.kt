@@ -28,9 +28,9 @@ private val openAIClient = OpenAIOkHttpClient.builder()
 private val logger = KotlinLogging.logger {}
 
 object OpenAIService {
-    private fun getGPTCompletion(devMessage: String, userMessage: String, responseSchema: JsonSchema.Schema): String? {
+    private fun getGPTCompletion(devMessage: String, userMessage: String, responseSchema: JsonSchema.Schema, chatModel: String? = null): String? {
         val createParams: ChatCompletionCreateParams = ChatCompletionCreateParams.builder()
-            .model(ChatModel.O4_MINI)
+            .model(if (!chatModel.isNullOrBlank()) ChatModel.of(chatModel) else ChatModel.O4_MINI)
             .maxCompletionTokens(2048)
             .responseFormat(ResponseFormatJsonSchema.builder()
                 .jsonSchema(JsonSchema.builder()
