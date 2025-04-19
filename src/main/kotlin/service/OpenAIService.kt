@@ -57,7 +57,7 @@ object OpenAIService {
         return completionContent
     }
 
-    private fun getAiOrderSuggestion(candles: HistoricCandlesResult, devMessageOverride: String?): OpenAiMarketAlert {
+    private fun getAiOrderSuggestion(candles: HistoricCandlesResult, devMessageOverride: String?, chatModel: String?): OpenAiMarketAlert {
         val structuredResponseSchema: JsonSchema.Schema = JsonSchema.Schema.builder()
             .putAdditionalProperty("type", JsonValue.from("object"))
             .putAdditionalProperty(
@@ -87,7 +87,7 @@ object OpenAIService {
 
         val devMessage = devMessageOverride?.trimIndent() ?: Constants.GPT_ORDER_DEV_MESSAGE
 
-        val completionContent = getGPTCompletion(devMessage, userMessage, structuredResponseSchema)
+        val completionContent = getGPTCompletion(devMessage, userMessage, structuredResponseSchema, chatModel)
 
         val json = Json {
             ignoreUnknownKeys = true
@@ -100,7 +100,7 @@ object OpenAIService {
         return OpenAiMarketAlert(0.0, 0.0, false, 0.0)
     }
 
-    private fun validateOpenPosition(candles: HistoricCandlesResult, devMessageOverride: String?, position: PositionInfo): GptPositionValidationResponse {
+    private fun validateOpenPosition(candles: HistoricCandlesResult, devMessageOverride: String?, position: PositionInfo, chatModel: String?): GptPositionValidationResponse {
         val structuredResponseSchema: JsonSchema.Schema = JsonSchema.Schema.builder()
             .putAdditionalProperty("type", JsonValue.from("object"))
             .putAdditionalProperty(
@@ -126,7 +126,7 @@ object OpenAIService {
 
         val devMessage = devMessageOverride?.trimIndent() ?: Constants.GPT_ORDER_VALIDATION_DEV_MESSAGE
 
-        val completionContent = getGPTCompletion(devMessage, userMessage, structuredResponseSchema)
+        val completionContent = getGPTCompletion(devMessage, userMessage, structuredResponseSchema, chatModel)
 
         val json = Json {
             ignoreUnknownKeys = true
@@ -150,7 +150,7 @@ object OpenAIService {
                     val activePositionResult = BybitService.getActivePosition("linear", symbol).result
                     val order = activePositionResult.list!![0]
                     val candles = BybitService.getHistoricCandles(symbol, schedulerCommand.intervalMinutes.toString(), schedulerCommand.validationCandleLookBack, "linear").result
-                    val gptResponse = validateOpenPosition(candles, schedulerCommand.validationDevMessageOverride, order)
+                    val gptResponse = validateOpenPosition(candles, schedulerCommand.validationDevMessageOverride, order, schedulerCommand.gptModel)
                     if (gptResponse.closePosition) {
                         BybitService.closePosition(order)
                     }
@@ -163,7 +163,7 @@ object OpenAIService {
             logger.info { "Preparing $symbol order" }
 
             val candles = BybitService.getHistoricCandles(symbol, schedulerCommand.intervalMinutes.toString(), schedulerCommand.candleLookBack, "linear").result
-            val gptResponse = getAiOrderSuggestion(candles, schedulerCommand.devMessageOverride)
+            val gptResponse = getAiOrderSuggestion(candles, schedulerCommand.devMessageOverride, schedulerCommand.gptModel)
 
             if (gptResponse.probability >= schedulerCommand.probabilityThreshold) {
                 val alert = OrderAlert(
