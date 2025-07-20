@@ -30,6 +30,19 @@ Deploys easily via Docker. Integrates with Bybit and OpenAI for smart, customiza
    docker-compose up --build
    ```
 
+## GPT Automated trades
+1. Update the dev messages for your desired strategy in: src/main/kotlin/Constants.kt
+2. Send a request to **port/start-gpt-trader** with the following body to start the automated trading bot:
+```
+{
+    "symbols": ["BTCUSDT", "SOLUSDT"],    // list of symbols you want to trade
+    "candleLookBack": "100",              // the amount of historic candles to use as context
+    "certaintyThreshold": 75,             // how sure do you want the bot to be before placing a trade
+    "intervalMinutes": 30,                // trading interval
+    "useTrailingStop": false              // set to true to use trailing stops instead of fixed ones 
+}
+```
+
 ## Webhook Format
 Send webhook alerts from TradingView or any platform in a supported JSON format:
 ```
@@ -40,18 +53,6 @@ Send webhook alerts from TradingView or any platform in a supported JSON format:
   "stop": 67000.0,
   "isLong": true,
   "useTrailingStop": false
-}
-```
-
-## GPT Automated trades
-Send a request to **port/start-gpt-trader** with the following body to start the automated trading bot:
-```
-{
-    "symbols": ["BTCUSDT", "SOLUSDT"],    // list of symbols you want to trade
-    "candleLookBack": "100",              // the amount of historic candles to use as context
-    "certaintyThreshold": 75,             // how sure do you want the bot to be before placing a trade
-    "intervalMinutes": 30,                // trading interval
-    "useTrailingStop": false              // set to true to use trailing stops instead of fixed ones 
 }
 ```
 
